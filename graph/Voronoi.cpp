@@ -29,9 +29,15 @@
 #include<iostream>
 #include<vector>
 
+/// delimitations for extern nodes
+const int maxCornerX = 1000000,
+          maxCornerY = 1000000,
+          minCornerX = -maxCornerX,
+          minCornerY = -maxCornerY;
+
 /// handy type for position
-typedef double pos_precision;
-typedef std::pair<pos_precision, pos_precision> Pos;
+typedef std::pair<double, double> Pos;
+
 
 /// represent a node of the graph : contains a position (x,y) and a pointer towards each node it is linked with
 class Node{
