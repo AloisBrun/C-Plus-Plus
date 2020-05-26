@@ -67,12 +67,12 @@ private:
     std::vector<Node*> nodes;
 
 public:
-    Graph(std::vector<Pos> &collection){
+    Graph(const std::vector<Pos> &collection){
         FortuneLineSweep(collection);
     }
 
     /// generate the Voronoï graph from a collection of positions
-    void FortuneLineSweep(std::vector<Pos> &collection);
+    void FortuneLineSweep(const std::vector<Pos> &collection);
 
     /// print the graph in the console
     /// only the areas of the graph are shown, note the nodes
@@ -83,10 +83,10 @@ public:
 class Parabola{
 public:
     Parabola *parent,
-             *left, *right;
-    const Pos *site;
+             *left_son, *right_son;
+    Pos *site;
 
-    Parabola(Parabola *parent, const Pos *site) : parent(parent), site(site), left(nullptr), right(nullptr) {}
+    Parabola(Parabola *parent, Pos *site) : parent(parent), site(site), left_son(nullptr), right_son(nullptr) {}
 
     /// used for insertions in BST
     void add(Parabola *parabola){
@@ -96,29 +96,34 @@ public:
 
 class Event{
 public:
+    bool is_site_event;
     Pos *pos;
     Parabola *beach_part;
 
-    Event(Pos *pos, Parabola *beach_part) : pos(pos), beach_part(beach_part) {}
+    Event(Pos *pos, bool is_site_event = true) : pos(pos), beach_part(nullptr), is_site_event(is_site_event) {}
 };
 
 
-void VoronoiGraph::FortuneLineSweep(std::vector<Pos> &collection){
+
+void VoronoiGraph::FortuneLineSweep(const std::vector<Pos> &collection){
     /// parabolas are stored in a BST
     Parabola* root;
     std::priority_queue<std::pair<double, Event*>> event_queue;
-    auto curr_pos = collection.begin();
+    Event* curr_event = nullptr;
 
     /// line sweeps left to right
-    double line = curr_pos->first;
-    root = new Parabola(nullptr, &(*curr_pos));
-    event_queue.push(std::make_pair(curr_pos->second, new Event(&(*curr_pos), root)));
-    curr_pos++;
+    for(Pos site : collection){
+        event_queue.push(std::make_pair(site.first, new Event(&site)));
+    }
 
 
     ///
     while(event_queue.size() != 0){
+        curr_event = event_queue.top().second;
 
+
+
+        event_queue.pop();
     }
 }
 
