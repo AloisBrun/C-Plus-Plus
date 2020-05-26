@@ -67,12 +67,12 @@ private:
     std::vector<Node*> nodes;
 
 public:
-    Graph(const std::vector<Pos> &collection){
+    Graph(std::vector<Pos> &collection){
         FortuneLineSweep(collection);
     }
 
     /// generate the Voronoï graph from a collection of positions
-    void FortuneLineSweep(const std::vector<Pos> &collection);
+    void FortuneLineSweep(std::vector<Pos> &collection);
 
     /// print the graph in the console
     /// only the areas of the graph are shown, note the nodes
@@ -80,38 +80,44 @@ public:
 };
 
 
-class Parabole{
-private:
-    Parabole *parent;
-    Node *site;
-
+class Parabola{
 public:
-    Parabole(Parabole *parent, Node *site){
-        this->parent = parent;
-        this->site = site;
+    Parabola *parent,
+             *left, *right;
+    const Pos *site;
+
+    Parabola(Parabola *parent, const Pos *site) : parent(parent), site(site), left(nullptr), right(nullptr) {}
+
+    /// used for insertions in BST
+    void add(Parabola *parabola){
+
     }
 };
 
 class Event{
-private:
-
 public:
+    Pos *pos;
+    Parabola *beach_part;
 
+    Event(Pos *pos, Parabola *beach_part) : pos(pos), beach_part(beach_part) {}
 };
 
 
+void VoronoiGraph::FortuneLineSweep(std::vector<Pos> &collection){
+    /// parabolas are stored in a BST
+    Parabola* root;
+    std::priority_queue<std::pair<double, Event*>> event_queue;
+    auto curr_pos = collection.begin();
 
-void VoronoiGraph::FortuneLineSweep(const std::vector<Pos> &collection){
     /// line sweeps left to right
-    double sweepLineY = 0;
-    std::list<Parabole*> parabole_list;
-    std::priority_queue<std::pair<double, Event*>> event_order;
-    auto next_pos = collection.begin();
+    double line = curr_pos->first;
+    root = new Parabola(nullptr, &(*curr_pos));
+    event_queue.push(std::make_pair(curr_pos->second, new Event(&(*curr_pos), root)));
+    curr_pos++;
 
 
-    next_pos++;
-
-    while(event_order.size() != 0){
+    ///
+    while(event_queue.size() != 0){
 
     }
 }
