@@ -31,7 +31,7 @@
 #include<iostream>
 #include<vector>
 #include<queue>
-#include<list>
+//#include<list>
 
 /// delimitations for extern nodes
 const int maxCornerX = 1000000,
@@ -80,28 +80,85 @@ public:
 };
 
 
-class Parabola{
-public:
-    Parabola *parent,
-             *left_son, *right_son;
-    Pos *site;
-
-    Parabola(Parabola *parent, Pos *site) : parent(parent), site(site), left_son(nullptr), right_son(nullptr) {}
-
-    /// used for insertions in BST
-    void add(Parabola *parabola){
-
-    }
-};
-
 class Event{
 public:
     bool is_site_event;
     Pos *pos;
-    Parabola *beach_part;
 
-    Event(Pos *pos, bool is_site_event = true) : pos(pos), beach_part(nullptr), is_site_event(is_site_event) {}
+    Event(Pos *pos, bool is_site_event = true) : pos(pos), is_site_event(is_site_event) {}
 };
+
+class Parabola{
+public:
+    Parabola *parent,
+             /// left branch : son is below this parabola, right it's above
+             *left_son, *right_son;
+    Pos *site;
+    Event *event;
+    //bool isBranch;  /// is the parabola used in the BST only as a branch to the leaves?
+
+    Parabola(Parabola *parent, Pos *site, Event *event) : //, bool isBranch = false) :
+                                parent(parent), site(site), event(event),// isBranch(isBranch),
+                                left_son(nullptr), right_son(nullptr)  {}
+
+    /// used for insertions in BST
+    void add(Pos *new_site, Event *new_event);
+
+    /// create 5 new parabolas ; two copy of the original to the left and right of the son parabola,
+    ///                          the son and two parabolas as branches
+    ///  0         ->          b                              b
+    ///                       / \                            / \
+    ///                      0   b                          b   0
+    ///                         / \                        / \
+    ///                        R   0  <- copy             0   L
+    ///                      (RIGHT)                       (LEFT)
+    void createLeft(Pos *new_site, Event *new_event);
+    void createRight(Pos *new_site, Event *new_event);
+};
+
+
+
+
+void Parabola::add(Pos *new_site, Event *new_event){
+    if(new_site->second < site->second){
+        if(left_son == nullptr){
+            createLeft(new_site, new_event);
+        }
+        else{
+            left_son->add(new_site, new_event);
+        }
+    }
+    else{
+        if(right_son == nullptr){
+            createRight(new_site, new_event);
+        }
+        else{
+            right_son->add(new_site, new_event);
+        }
+    }
+}
+
+void Parabola::createLeft(Pos *new_site, Event *new_event){
+    Parabola *duplicate = new Parabola(this, site, event),
+             *left_branch = new Parabola(this, site, nullptr),
+             *left_right_son = new Parabola(left_branch, new_site, new_event);
+
+    left_son = left_branch;
+    left_son->left_son = duplicate;
+    left_son->right_son = left_right_son;
+    right_son = duplicate;
+}
+
+void Parabola::createRight(Pos *new_site, Event *new_event){
+    Parabola *duplicate = new Parabola(this, site, event),
+             *right_branch = new Parabola(this, site, nullptr),
+             *right_left_son = new Parabola(right_branch, new_site, new_event);
+
+    right_son = right_branch;
+    right_son->right_son = duplicate;
+    right_son->left_son = right_left_son;
+    left_son = duplicate;
+}
 
 
 
@@ -110,6 +167,7 @@ void VoronoiGraph::FortuneLineSweep(const std::vector<Pos> &collection){
     Parabola* root;
     std::priority_queue<std::pair<double, Event*>> event_queue;
     Event* curr_event = nullptr;
+    double sweep_line_x = 0;
 
     /// line sweeps left to right
     for(Pos site : collection){
@@ -120,16 +178,22 @@ void VoronoiGraph::FortuneLineSweep(const std::vector<Pos> &collection){
     ///
     while(event_queue.size() != 0){
         curr_event = event_queue.top().second;
+        sweep_line_x = curr_event->pos->first;
 
-
-
-        event_queue.pop();
+        if(curr_event->is_site_event){
+            root->add(curr_event->pos, curr_event);
+        }
+        else{
+            event_queue.pop();
+        }
     }
 }
 
 void VoronoiGraph::Show(){
 
 }
+
+
 
 
 int main(){
